@@ -1,6 +1,7 @@
 package com.akotnana.xplore.activities;
 
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
@@ -19,7 +20,7 @@ import com.akotnana.xplore.fragments.ProfileFragment;
 import com.akotnana.xplore.fragments.SettingsFragment;
 import com.akotnana.xplore.fragments.ShareFragment;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements DashboardFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener {
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     private ActionBarDrawerToggle setupDrawerToggle() {
         return new ActionBarDrawerToggle(this, mDrawer, toolbar, R.string.drawer_open,  R.string.drawer_close);
     }
+
+
 
     private void setupDrawerContent(NavigationView navigationView) {
         navigationView.setNavigationItemSelectedListener(
@@ -142,5 +145,10 @@ public class MainActivity extends AppCompatActivity {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggles
         drawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }
