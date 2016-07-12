@@ -27,4 +27,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-gcm:9.2.0'
     compile 'com.google.android.gms:play-services-maps:9.2.0'
     compile 'com.google.android.gms:play-services-places:9.2.0'
+    compile 'de.hdodenhof:circleimageview:2.1.0'
 }
