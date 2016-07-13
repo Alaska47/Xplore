@@ -1,7 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimaryDark">#1976D2</color>
+    <color name="colorPrimaryLight">#BBDEFB</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="white">#FFFFFF</color>
+
+    <color name="red">#ff0000</color>
+    <color name="green">#00cf00</color>
+    <color name="blue">#0099ff</color>
+
+    <color name="yellow">#ffff00</color>
+    <color name="cyan">#00ffff</color>
+    <color name="magenta">#ff00ff</color>
+
+    <color name="black">#000000</color>
+    <color name="white">#ffffff</color>
+    <color name="gray_dark">#404040</color>
+    <color name="gray">#808080</color>
+    <color name="gray_light">#c0c0c0</color>
+    <color name="gray_background">#f0f0f0</color>
+
+    <color name="blue_background">#0a5b83</color>
+    <color name="blue_dark">#4079c8</color>
+    <color name="blue_medium">#5a8dcf</color>
+    <color name="blue_light">#96b8dd</color>
+    <color name="red_light">#ff8888</color>
+    <color name="green_light">#86ff86</color>
+
+    <color name="transparent">#00ffffff</color>
+    <color name="transparent_blue_background">#e00a5b83</color>
+
+    <!-- for "times square" library -->
+    <color name="calendar_active_month_bg">#fff5f7f9</color>
+    <color name="calendar_bg">#ffffffff</color>
+    <color name="calendar_divider">#ffbababa</color>
+    <color name="calendar_inactive_month_bg">#ffd7d9db</color>
+    <color name="calendar_selected_day_bg">#ff379bff</color>
+    <color name="calendar_highlighted_day_bg">#ccffcc</color>
+    <color name="calendar_selected_range_bg">#ff96caff</color>
+    <color name="calendar_text_inactive">#40778088</color>
+    <color name="calendar_text_active">#ff778088</color>
+    <color name="calendar_text_selected">#ffffffff</color>
+    <color name="calendar_text_unselectable">#7f778088</color>
+
+    <color name="summer">#44eebd82</color>
+    <color name="fall">#44d8d27e</color>
+    <color name="winter">#44a1c1da</color>
+    <color name="spring">#448da64b</color>
 </resources>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:sample="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/tools">
+    <TextView
+        android:id="@+id/text_slider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Search Range (miles)"
+        android:layout_marginRight="5dp"/>
+    <org.adw.library.widgets.discreteseekbar.DiscreteSeekBar
+        android:layout_width="match_parent"
+        android:layout_below="@id/text_slider"
+        android:id="@+id/sliderLayout"
+        android:layout_height="wrap_content"
+        app:dsb_min="1"
+        app:dsb_value="5"
+        app:dsb_max="20" />
+    <android.support.design.widget.TextInputLayout
+        android:layout_below="@id/sliderLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center" >
+        <EditText
+            android:layout_width="match_parent"
+            android:id="@+id/query"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext"
+            android:inputType="textNoSuggestions"
+            android:minWidth="350dp"
+            android:drawableLeft="@drawable/ic_search_black_24dp"
+            android:drawableStart="@drawable/ic_search_black_24dp"
+            android:textCursorDrawable="@null"
+            app:backgroundTint="@android:color/white"
+            android:hint="Search" />
+
+    </android.support.design.widget.TextInputLayout>
+</RelativeLayout>
