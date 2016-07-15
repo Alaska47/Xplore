@@ -1,19 +1,14 @@
 package com.akotnana.xplore.fragments;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,32 +19,23 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.akotnana.xplore.activities.MainActivity;
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.akotnana.xplore.R;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
-
-import com.akotnana.xplore.R;
 import com.google.android.gms.maps.model.VisibleRegion;
 import com.google.maps.android.SphericalUtil;
 
 import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 
-import java.util.Arrays;
-
 import io.nlopez.smartlocation.OnLocationUpdatedListener;
 import io.nlopez.smartlocation.SmartLocation;
-
-import static android.location.LocationManager.*;
 
 public class DashboardFragment extends Fragment implements OnMapReadyCallback {
 
@@ -75,6 +61,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBundle = savedInstanceState;
+        reloadedTimes = Integer.parseInt(getData("callsMade"));
     }
 
     @Override
@@ -126,7 +113,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         discreteSeekBar1.setNumericTransformer(new DiscreteSeekBar.NumericTransformer() {
             @Override
             public int transform(int value) {
-                return (int) (value * 0.4d);
+                return (int) (value * 5.0d);
             }
         });
         et = (EditText) inflated.findViewById(R.id.query);
@@ -151,6 +138,8 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        
+
         Log.d("DashboardFragment", "map ready");
 
         SmartLocation.with(getContext()).location()
@@ -172,6 +161,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                         e.printStackTrace();
                     }
                 }
+                storeData("lastRetrieved", Long.toString(System.currentTimeMillis()));
                 LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
                 LatLngBounds bounds = new LatLngBounds.Builder().
                         include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
@@ -187,8 +177,6 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             }
         }).start();
 
-
-
         handler = new MapStateHandler();
 
         mMap.setOnCameraChangeListener(new GoogleMap.OnCameraChangeListener() {
@@ -200,6 +188,13 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                 handler.sendEmptyMessageDelayed(MESSAGE_ID_READ_CAMERA_POSITION, 1000);
             }
         });
+    }
+    public void storeData(String key, String value) {
+        getContext().getSharedPreferences("XPLORE_PREFS",Context.MODE_PRIVATE).edit().putString(key,value).apply();
+    }
+
+    public String getData(String key) {
+        return getContext().getSharedPreferences("XPLORE_PREFS",Context.MODE_PRIVATE).getString(key, "");
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -237,6 +232,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onPause() {
         super.onPause();
         mMapView.onPause();
+        storeData("callsMade", Integer.toString(reloadedTimes));
     }
 
     @Override
@@ -262,60 +258,65 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         void onFragmentInteraction(Uri uri);
     }
 
-    private static double getMapRadius(GoogleMap googleMap) {
-        VisibleRegion visibleRegion = googleMap.getProjection().getVisibleRegion();
+    private double getMapRadius(GoogleMap googleMap) {
+        VisibleRegion vr = mMap.getProjection().getVisibleRegion();
+        double left = vr.latLngBounds.southwest.longitude;
+        double top = vr.latLngBounds.northeast.latitude;
+        double right = vr.latLngBounds.northeast.longitude;
+        double bottom = vr.latLngBounds.southwest.latitude;
 
-        LatLng farRight = visibleRegion.farRight;
-        LatLng farLeft = visibleRegion.farLeft;
-        LatLng nearRight = visibleRegion.nearRight;
-        LatLng nearLeft = visibleRegion.nearLeft;
+        Location MiddleLeftCornerLocation = null;//(center's latitude,vr.latLngBounds.southwest.longitude)
+        Location center=new Location("center");
+        center.setLatitude(vr.latLngBounds.getCenter().latitude);
+        center.setLongitude(vr.latLngBounds.getCenter().longitude);
 
-        float[] distanceWidth = new float[2];
-        Location.distanceBetween(
-                (farRight.latitude+nearRight.latitude)/2,
-                (farRight.longitude+nearRight.longitude)/2,
-                (farLeft.latitude+nearLeft.latitude)/2,
-                (farLeft.longitude+nearLeft.longitude)/2,
-                distanceWidth
-        );
+        float dis = getMiles(center.distanceTo(MiddleLeftCornerLocation));//calculate distane between middleLeftcorner and center
 
-        float[] distanceHeight = new float[2];
-        Location.distanceBetween(
-                (farRight.latitude + nearRight.latitude) / 2,
-                (farRight.longitude + nearRight.longitude) / 2,
-                (farLeft.latitude + nearLeft.latitude) / 2,
-                (farLeft.longitude + nearLeft.longitude) / 2,
-                distanceHeight
-        );
-
-        float distance;
-
-        Log.d("DashboardFragment", "distances: " + Arrays.toString(distanceWidth) + "|" + Arrays.toString(distanceHeight));
-
-        if (distanceWidth[0] < distanceHeight[0]){
-            distance = distanceWidth[0];
-        } else {
-            distance = distanceHeight[0];
-        }
-
-        distance = distance * 0.000621371192f;
-
-        return (double) (Math.round(distance * 2.0f) / 2.0f);
+        return roundToHalf(dis);
     }
 
-    private static class MapStateHandler extends Handler {
+    public float roundToHalf(float d) {
+        return Math.round(d * 2f) / 2.0f;
+    }
+
+    public float getMiles(float i) {
+        return i*0.000621371192f;
+    }
+
+    public float getMeters(float i) {
+        return i*1609.344f;
+    }
+
+    class MapStateHandler extends Handler {
         public void handleMessage(Message msg) {
             if (msg.what == MESSAGE_ID_SAVE_CAMERA_POSITION) {
                 lastCameraPosition = mMap.getCameraPosition();
             } else if (msg.what == MESSAGE_ID_READ_CAMERA_POSITION) {
                 if (lastCameraPosition.equals(mMap.getCameraPosition())) {
                     Log.d("DashboardFragment", "Camera position stable, retrieved " + Integer.toString(reloadedTimes) + ", with radius of " + Double.toString(getMapRadius(mMap)));
-                    reloadedTimes += 1;
-
+                    if(reloadedTimes % 10 == 0 && reloadedTimes > 0) {
+                        long current = System.currentTimeMillis();
+                        long prev = Long.parseLong(getData("lastRetrieved"));
+                        if(current - prev <= 20 * 1000) {
+                            storeData("isPaused", "true");
+                        }
+                        storeData("lastRetrieved", Long.toString(current + 60 * 1000));
+                    }
+                    if(getData("isPaused").equals("false")) {
+                        reloadedTimes += 1;
+                    } else {
+                        long current = System.currentTimeMillis();
+                        long prev = Long.parseLong(getData("lastRetrieved"));
+                        if(current - prev > 60 * 1000) {
+                            storeData("isPaused", "false");
+                        } else {
+                            showToast("Slow down! Please wait " + ((60 - (int) ((current - prev) / 1000))) + " more seconds.");
+                        }
+                    }
                 }
             }
         }
-    };
+    }
 
 
 }
