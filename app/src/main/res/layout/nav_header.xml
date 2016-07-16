@@ -20,10 +20,9 @@
             android:layout_height="@dimen/material_drawer_account_header_selected"
             android:layout_alignParentLeft="true"
             android:layout_alignParentTop="true"
-            android:layout_marginBottom="@dimen/material_drawer_account_header_horizontal_bottom"
             android:layout_marginLeft="@dimen/material_drawer_vertical_padding"
             android:layout_marginTop="@dimen/material_drawer_account_header_horizontal_top"
-            android:src="@drawable/ic_face" />
+            android:src="@drawable/default_profile" />
 
         <LinearLayout
             android:id="@+id/material_drawer_account_header_text_section"

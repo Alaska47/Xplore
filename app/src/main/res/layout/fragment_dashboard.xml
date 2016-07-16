@@ -21,4 +21,24 @@
         android:layout_centerHorizontal="true"
         android:text="Search Events" />
 
+    <Button
+        android:theme="@style/BlueButton"
+        android:id="@+id/currentLoc"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:text="Current Location" />
+
+    <Button
+        android:theme="@style/BlueButton"
+        android:id="@+id/toggle"
+        android:textSize="15sp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:text="Toggle Mode" />
+
 </RelativeLayout>
