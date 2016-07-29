@@ -1,9 +1,112 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" tools:context="com.akotnana.xplore.fragments.ProfileFragment">
+    xmlns:f="http://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/tools"
+    android:layout_height="match_parent" tools:context="com.akotnana.xplore.fragments.ProfileFragment" >
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView android:layout_width="match_parent" android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_above="@+id/footer"
+        android:fillViewport="true">
 
-</FrameLayout>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal">
+
+                <ImageView
+                    android:layout_width="192dp"
+                    android:layout_height="192dp"
+                    android:id="@+id/profile_pic"
+                    android:layout_centerHorizontal="true"
+                    android:src="@drawable/default_profile"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitCenter" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/profile_pic"
+                    android:textSize="20sp"
+                    android:layout_centerHorizontal="true"
+                    android:padding="10dp"
+                    android:text="Aneesh Kotnana" />
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:padding="5dp"
+                android:text="Occupation" />
+
+            <com.weiwangcn.betterspinner.library.material.MaterialBetterSpinner
+                android:id="@+id/android_material_design_spinner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Select one"
+                android:padding="10dp"
+                android:layout_marginBottom="5dp"
+                android:textColorHint="@color/colorPrimary"
+                app:met_floatingLabel="normal" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="18sp"
+                android:padding="5dp"
+                android:text="Interests" />
+
+            <org.apmem.tools.layouts.FlowLayout
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                f:layoutDirection="ltr"
+                android:padding="5dp"
+                android:id="@+id/interest_layout"
+                f:weightDefault="1.0"
+                android:gravity="fill"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:theme="@style/BlueButton"
+                    android:layout_width="wrap_content"
+                    android:layout_marginTop="5dp"
+                    android:clickable="true"
+                    android:padding="5dp"
+                    android:id="@+id/add_button"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/rounded_button"
+                    android:src="@drawable/ic_add_white_24dp"/>
+
+            </org.apmem.tools.layouts.FlowLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <RelativeLayout
+        android:id="@+id/footer"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+
+        <Button
+            android:theme="@style/BlueButton"
+            android:id="@+id/save_profile"
+            android:textSize="15sp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Save Changes" />
+
+    </RelativeLayout>
+
+</RelativeLayout>

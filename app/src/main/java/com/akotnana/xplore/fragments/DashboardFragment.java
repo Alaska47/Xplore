@@ -2,6 +2,7 @@ package com.akotnana.xplore.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -61,7 +62,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mBundle = savedInstanceState;
-        reloadedTimes = Integer.parseInt(getData("callsMade"));
+
     }
 
     @Override
@@ -82,10 +83,47 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
+        Button current = (Button) inflatedView.findViewById(R.id.currentLoc);
+        current.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                returnToCurrent(v);
+            }
+        });
+
+        Button toggle = (Button) inflatedView.findViewById(R.id.toggle);
+        toggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                toggleMode(v);
+            }
+        });
+
         mMapView = (MapView) inflatedView.findViewById(R.id.map);
         mMapView.onCreate(mBundle);
         setUpMapIfNeeded(inflatedView);
+        String intermediate = (getData("callsMade"));
+        if(intermediate.equals("")) {
+            reloadedTimes = 0;
+            storeData("callsMade", Integer.toString(reloadedTimes));
+            storeData("lastRetrieved", Long.toString(System.currentTimeMillis()));
+            Log.d("DashboardFragment", "create callsMade");
+            Log.d("DashboardFragment", getData("lastRetrieved"));
+        } else {
+            reloadedTimes = Integer.parseInt(intermediate);
+            Log.d("DashboardFragment", "stored reloaded times");
+        }
         return inflatedView;
+    }
+
+    private void toggleMode(View v) {
+        if(mMap.getMapType() == GoogleMap.MAP_TYPE_NORMAL) {
+            mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+        } else if(mMap.getMapType() == GoogleMap.MAP_TYPE_SATELLITE) {
+            mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        } else if(mMap.getMapType() == GoogleMap.MAP_TYPE_HYBRID) {
+            mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        } else {}
     }
 
     private void displayDialog(View v) {
@@ -99,6 +137,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         showToast("Query: " + et.getText().toString() + " and range: " + discreteSeekBar1.getProgress());
+                        //get data here
                     }
                 })
                 .onNegative(new MaterialDialog.SingleButtonCallback() {
@@ -113,12 +152,48 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         discreteSeekBar1.setNumericTransformer(new DiscreteSeekBar.NumericTransformer() {
             @Override
             public int transform(int value) {
-                return (int) (value * 5.0d);
+                return (int) (value * 2.5d);
             }
         });
         et = (EditText) inflated.findViewById(R.id.query);
         dialog.setCancelable(false);
         dialog.show();
+    }
+
+    private void returnToCurrent(View v) {
+        SmartLocation.with(getContext()).location()
+                .oneFix()
+                .start(new OnLocationUpdatedListener() {
+                    @Override
+                    public void onLocationUpdated(Location location) {
+                        userLoc = location;
+                        Log.d("Got location", location.toString());
+                    }
+                });
+
+        new Thread(new Runnable() {
+            public void run() {
+                while(userLoc == null ) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
+                LatLngBounds bounds = new LatLngBounds.Builder().
+                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
+                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 90)).
+                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 180)).
+                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 270)).build();
+                final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 0);
+                getActivity().runOnUiThread(new Runnable() {
+                    public void run() {
+                        mMap.animateCamera(cameraUpdate);
+                    }
+                });
+            }
+        }).start();
     }
 
     private void showToast(String message) {
@@ -137,8 +212,6 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-
-        
 
         Log.d("DashboardFragment", "map ready");
 
@@ -161,7 +234,6 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                         e.printStackTrace();
                     }
                 }
-                storeData("lastRetrieved", Long.toString(System.currentTimeMillis()));
                 LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
                 LatLngBounds bounds = new LatLngBounds.Builder().
                         include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
@@ -190,7 +262,9 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         });
     }
     public void storeData(String key, String value) {
-        getContext().getSharedPreferences("XPLORE_PREFS",Context.MODE_PRIVATE).edit().putString(key,value).apply();
+        SharedPreferences.Editor editor = getContext().getSharedPreferences("XPLORE_PREFS", Context.MODE_PRIVATE).edit();
+        editor.putString(key,value);
+        editor.apply();
     }
 
     public String getData(String key) {
@@ -225,14 +299,13 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onResume() {
         mMapView.onResume();
         super.onResume();
-
     }
 
     @Override
     public void onPause() {
         super.onPause();
         mMapView.onPause();
-        storeData("callsMade", Integer.toString(reloadedTimes));
+
     }
 
     @Override
@@ -245,12 +318,19 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public void onLowMemory() {
         super.onLowMemory();
         mMapView.onLowMemory();
+        storeData("callsMade", Integer.toString(reloadedTimes));
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        storeData("callsMade", Integer.toString(reloadedTimes));
     }
 
     public interface OnFragmentInteractionListener {
@@ -265,12 +345,16 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         double right = vr.latLngBounds.northeast.longitude;
         double bottom = vr.latLngBounds.southwest.latitude;
 
-        Location MiddleLeftCornerLocation = null;//(center's latitude,vr.latLngBounds.southwest.longitude)
         Location center=new Location("center");
         center.setLatitude(vr.latLngBounds.getCenter().latitude);
         center.setLongitude(vr.latLngBounds.getCenter().longitude);
+        Location middleLeft = new Location("middleLeftCenter");
+        middleLeft.setLatitude(center.getLatitude());
+        middleLeft.setLongitude(left);
 
-        float dis = getMiles(center.distanceTo(MiddleLeftCornerLocation));//calculate distane between middleLeftcorner and center
+        float dis = (center.distanceTo(middleLeft));//calculate distane between middleLeftcorner and center
+
+        dis = getMiles(dis);
 
         return roundToHalf(dis);
     }
@@ -293,25 +377,34 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                 lastCameraPosition = mMap.getCameraPosition();
             } else if (msg.what == MESSAGE_ID_READ_CAMERA_POSITION) {
                 if (lastCameraPosition.equals(mMap.getCameraPosition())) {
-                    Log.d("DashboardFragment", "Camera position stable, retrieved " + Integer.toString(reloadedTimes) + ", with radius of " + Double.toString(getMapRadius(mMap)));
-                    if(reloadedTimes % 10 == 0 && reloadedTimes > 0) {
+                    if(reloadedTimes % 6 == 0 && reloadedTimes > 0) {
                         long current = System.currentTimeMillis();
                         long prev = Long.parseLong(getData("lastRetrieved"));
-                        if(current - prev <= 20 * 1000) {
+                        Log.d("DashboardFragment", "measured: " + Long.toString(prev));
+                        Log.d("DashboardFragment", "diff: " + Long.toString(current - prev));
+                        if(current - prev <= 60.0 * 1000.0) {
+                            Log.d("DashboardFragment", "too many requests");
                             storeData("isPaused", "true");
+                            storeData("lastRetrieved", Long.toString(current + 60 * 1000));
+                            reloadedTimes += 1;
+                        } else {
+                            storeData("lastRetrieved", Long.toString(current));
+                            Log.d("DashboardFragment", "new last retrieved: " + Long.toString(current));
                         }
-                        storeData("lastRetrieved", Long.toString(current + 60 * 1000));
                     }
-                    if(getData("isPaused").equals("false")) {
-                        reloadedTimes += 1;
-                    } else {
+                    if(getData("isPaused").equals("true")) {
                         long current = System.currentTimeMillis();
                         long prev = Long.parseLong(getData("lastRetrieved"));
-                        if(current - prev > 60 * 1000) {
+                        if(current >= prev) {
                             storeData("isPaused", "false");
                         } else {
-                            showToast("Slow down! Please wait " + ((60 - (int) ((current - prev) / 1000))) + " more seconds.");
+                            showToast("Slow down! Please wait " + (((int) ((prev - current) / 1000))) + " more seconds.");
                         }
+                    }
+                    if(!getData("isPaused").equals("true")) {
+                        reloadedTimes += 1;
+                        Log.d("DashboardFragment", "Camera position stable, retrieved " + Integer.toString(reloadedTimes) + ", with radius of " + Double.toString(getMapRadius(mMap)));
+                        //get data here
                     }
                 }
             }
