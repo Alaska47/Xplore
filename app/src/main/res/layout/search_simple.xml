@@ -14,8 +14,8 @@
             android:imeOptions="actionNext"
             android:inputType="textNoSuggestions"
             android:minWidth="350dp"
-            android:drawableLeft="@drawable/ic_add_box_black_24dp"
-            android:drawableStart="@drawable/ic_add_box_black_24dp"
+            android:drawableLeft="@drawable/ic_add_black_24dp"
+            android:drawableStart="@drawable/ic_add_black_24dp"
             android:textCursorDrawable="@null"
             app:backgroundTint="@android:color/white"
             android:hint="Add Interest" />

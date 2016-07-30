@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.EventLogTags;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,21 +36,35 @@ public class ShareFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View x = inflater.inflate(R.layout.fragment_share, container, false);
-        tabLayout = (TabLayout) x.findViewById(R.id.tabs);
-        viewPager = (ViewPager) x.findViewById(R.id.viewpager);
+        View inflatedView = inflater.inflate(R.layout.fragment_share, container, false);
 
-        viewPager.setAdapter(new ShareEventAdapter(getChildFragmentManager()));
+        TabLayout tabLayout = (TabLayout) inflatedView.findViewById(R.id.tabLayout);
+        tabLayout.addTab(tabLayout.newTab().setText("Name"));
+        tabLayout.addTab(tabLayout.newTab().setText("Dates"));
+        tabLayout.addTab(tabLayout.newTab().setText("Description"));
+        final ViewPager viewPager = (ViewPager) inflatedView.findViewById(R.id.viewpager);
 
-        tabLayout.post(new Runnable() {
+        viewPager.setAdapter(new PagerAdapter
+                (getFragmentManager(), tabLayout.getTabCount()));
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+        tabLayout.setOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
-            public void run() {
-                tabLayout.setupWithViewPager(viewPager);
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
             }
         });
 
-        return x;
+        return inflatedView;
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -81,54 +96,35 @@ public class ShareFragment extends Fragment {
         void onFragmentInteraction(Uri uri);
     }
 
-    class ShareEventAdapter extends FragmentPagerAdapter {
+    public class PagerAdapter extends FragmentPagerAdapter {
+        int mNumOfTabs;
 
-        public ShareEventAdapter(FragmentManager fm) {
+        public PagerAdapter(FragmentManager fm, int NumOfTabs) {
             super(fm);
+            this.mNumOfTabs = NumOfTabs;
         }
 
-        /**
-         * Return fragment with respect to Position .
-         */
-
         @Override
-        public Fragment getItem(int position)
-        {
+        public Fragment getItem(int position) {
 
-            /*
-            switch (position){
-                case 0 : return new ();
-                case 1 : return new SocialFragment();
-                case 2 : return new UpdatesFragment();
+            switch (position) {
+                case 0:
+                    NameSmallFragment tab1 = new NameSmallFragment();
+                    return tab1;
+                case 1:
+                    DateSmallFragment tab2 = new DateSmallFragment();
+                    return tab2;
+                case 2:
+                    DescriptionSmallFragment tab3 = new DescriptionSmallFragment();
+                    return tab3;
+                default:
+                    return null;
             }
-            return null;
-            */
-            return null;
         }
 
         @Override
         public int getCount() {
-
-            return int_items;
-
-        }
-
-        /**
-         * This method returns the title of the tab according to the position.
-         */
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-
-            switch (position){
-                case 0 :
-                    return "Names";
-                case 1 :
-                    return "Dates";
-                case 2 :
-                    return "Finish";
-            }
-            return null;
+            return mNumOfTabs;
         }
     }
 }

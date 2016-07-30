@@ -17,11 +17,14 @@ import android.view.View;
 
 import com.akotnana.xplore.R;
 import com.akotnana.xplore.fragments.DashboardFragment;
+import com.akotnana.xplore.fragments.DateSmallFragment;
+import com.akotnana.xplore.fragments.DescriptionSmallFragment;
+import com.akotnana.xplore.fragments.NameSmallFragment;
 import com.akotnana.xplore.fragments.ProfileFragment;
 import com.akotnana.xplore.fragments.SettingsFragment;
 import com.akotnana.xplore.fragments.ShareFragment;
 
-public class MainActivity extends AppCompatActivity implements DashboardFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements DashboardFragment.OnFragmentInteractionListener, ProfileFragment.OnFragmentInteractionListener, ShareFragment.OnFragmentInteractionListener, SettingsFragment.OnFragmentInteractionListener, NameSmallFragment.OnFragmentInteractionListener, DateSmallFragment.OnFragmentInteractionListener, DescriptionSmallFragment.OnFragmentInteractionListener {
 
     private DrawerLayout mDrawer;
     private Toolbar toolbar;

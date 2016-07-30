@@ -63,16 +63,12 @@
                 android:padding="5dp"
                 android:text="Interests" />
 
-            <org.apmem.tools.layouts.FlowLayout
-                xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="fill_parent"
+            <com.wefika.flowlayout.FlowLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                f:layoutDirection="ltr"
-                android:padding="5dp"
                 android:id="@+id/interest_layout"
-                f:weightDefault="1.0"
-                android:gravity="fill"
-                android:orientation="horizontal">
+                android:gravity="start|top"
+                android:padding="10dp" >
 
                 <ImageButton
                     android:theme="@style/BlueButton"
@@ -88,7 +84,7 @@
                     android:background="@drawable/rounded_button"
                     android:src="@drawable/ic_add_white_24dp"/>
 
-            </org.apmem.tools.layouts.FlowLayout>
+            </com.wefika.flowlayout.FlowLayout>
         </LinearLayout>
     </ScrollView>
 

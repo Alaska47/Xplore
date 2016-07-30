@@ -1,11 +1,10 @@
 <resources>
-
     <!-- Base application theme. -->
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">#2196F3</item>
         <item name="colorPrimaryDark">#1976D2</item>
-        <item name="colorAccent">#FF4081</item>
+        <item name="colorAccent">@color/colorAccent</item>
         <item name="android:buttonStyle">@style/BlueButton</item>
     </style>
     <style name="AppTheme.NoActionBar">
@@ -15,6 +14,24 @@
     <style name="BlueButton" parent="Widget.AppCompat.Button.Colored">
         <item name="colorButtonNormal">#2196F3</item>
         <item name="android:textColorPrimary">#fff</item>
+    </style>
+    <style name="GreenButton" parent="Widget.AppCompat.Button.Colored">
+        <item name="colorButtonNormal">@color/colorAccent</item>
+        <item name="android:textColorPrimary">#fff</item>
+    </style>
+    <style name="CustomTabLayout" parent="Widget.Design.TabLayout">
+        <item name="tabIndicatorColor">@color/colorAccent</item>
+        <item name="tabBackground">@color/colorPrimary</item>
+        <item name="tabIndicatorHeight">3dp</item>
+        <item name="tabSelectedTextColor">@color/colorAccent</item>
+        <item name="tabTextColor">@color/white</item>
+    </style>
+    <style name="counterText">
+        <item name="android:textColor">@color/colorAccent</item>
+    </style>
+
+    <style name="counterOverride">
+        <item name="android:textColor">#ff0000</item>
     </style>
     <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />

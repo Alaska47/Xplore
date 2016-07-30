@@ -1,15 +1,23 @@
 package com.akotnana.xplore.fragments;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.PermissionChecker;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,14 +46,18 @@ import org.adw.library.widgets.discreteseekbar.DiscreteSeekBar;
 import io.nlopez.smartlocation.OnLocationUpdatedListener;
 import io.nlopez.smartlocation.SmartLocation;
 
+import static android.support.v4.content.PermissionChecker.checkSelfPermission;
+
 public class DashboardFragment extends Fragment implements OnMapReadyCallback {
 
     private OnFragmentInteractionListener mListener;
     private static final int MESSAGE_ID_SAVE_CAMERA_POSITION = 1;
     private static final int MESSAGE_ID_READ_CAMERA_POSITION = 2;
+    private static final int PERMISSIONS_MAP = 1337;
     private static int reloadedTimes = 0;
     private static CameraPosition lastCameraPosition;
     private static Location userLoc;
+    private Button current;
     private Handler handler;
     private EditText et;
     private DiscreteSeekBar discreteSeekBar1;
@@ -69,6 +81,12 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_dashboard, container, false);
+
+        if(selfPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) || selfPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSIONS_MAP);
+        }
+
         try {
             MapsInitializer.initialize(getActivity());
         } catch (Exception e) {
@@ -83,11 +101,11 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             }
         });
 
-        Button current = (Button) inflatedView.findViewById(R.id.currentLoc);
+        current = (Button) inflatedView.findViewById(R.id.currentLoc);
         current.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                returnToCurrent(v);
+                returnToCurrent();
             }
         });
 
@@ -160,7 +178,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
         dialog.show();
     }
 
-    private void returnToCurrent(View v) {
+    private void returnToCurrent() {
         SmartLocation.with(getContext()).location()
                 .oneFix()
                 .start(new OnLocationUpdatedListener() {
@@ -180,6 +198,7 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
                         e.printStackTrace();
                     }
                 }
+                Log.d("Dash", "got location");
                 LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
                 LatLngBounds bounds = new LatLngBounds.Builder().
                         include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
@@ -215,39 +234,45 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
 
         Log.d("DashboardFragment", "map ready");
 
-        SmartLocation.with(getContext()).location()
-                .oneFix()
-                .start(new OnLocationUpdatedListener() {
-                    @Override
-                    public void onLocationUpdated(Location location) {
-                        userLoc = location;
-                        Log.d("Got location", location.toString());
-                    }
-                });
+        if(selfPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) || selfPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            Log.d("Dash", "good");
+            SmartLocation.with(getContext()).location()
+                    .oneFix()
+                    .start(new OnLocationUpdatedListener() {
+                        @Override
+                        public void onLocationUpdated(Location location) {
+                            userLoc = location;
+                            Log.d("Got location", location.toString());
+                        }
+                    });
 
-        new Thread(new Runnable() {
-            public void run() {
-                while(userLoc == null ) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            new Thread(new Runnable() {
+                public void run() {
+                    while (userLoc == null) {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
+                    LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
+                    LatLngBounds bounds = new LatLngBounds.Builder().
+                            include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
+                            include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 90)).
+                            include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 180)).
+                            include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 270)).build();
+                    final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 0);
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            mMap.moveCamera(cameraUpdate);
+                        }
+                    });
                 }
-                LatLng newLatLng = new LatLng(userLoc.getLatitude(), userLoc.getLongitude());
-                LatLngBounds bounds = new LatLngBounds.Builder().
-                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 0)).
-                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 90)).
-                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 180)).
-                        include(SphericalUtil.computeOffset(newLatLng, 5 * 1609.344d, 270)).build();
-                final CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 0);
-                getActivity().runOnUiThread(new Runnable() {
-                    public void run() {
-                        mMap.moveCamera(cameraUpdate);
-                    }
-                });
-            }
-        }).start();
+            }).start();
+        } else {
+            Log.d("Dash", "bad");
+            current.setEnabled(false);
+        }
 
         handler = new MapStateHandler();
 
@@ -261,6 +286,28 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
             }
         });
     }
+
+    public boolean selfPermissionGranted(String permission) {
+        // For Android < Android M, self permissions are always granted.
+        boolean result = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // targetSdkVersion >= Android M, we can
+                // use Context#checkSelfPermission
+                result = getContext().checkSelfPermission(permission)
+                        == PackageManager.PERMISSION_GRANTED;
+            } else {
+                // targetSdkVersion < Android M, we have to use PermissionChecker
+                result = PermissionChecker.checkSelfPermission(getContext(), permission)
+                        == PermissionChecker.PERMISSION_GRANTED;
+            }
+        }
+
+        return result;
+    }
+
     public void storeData(String key, String value) {
         SharedPreferences.Editor editor = getContext().getSharedPreferences("XPLORE_PREFS", Context.MODE_PRIVATE).edit();
         editor.putString(key,value);
@@ -336,6 +383,59 @@ public class DashboardFragment extends Fragment implements OnMapReadyCallback {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        Log.d("DashboardFragment", "Permission result");
+        switch (requestCode) {
+
+            case PERMISSIONS_MAP: {
+                Log.d("DashboardFragment", "Permission result");
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    current.setEnabled(true);
+                    returnToCurrent();
+                } else {
+                    showErrorDialog();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
+    }
+
+    private void showErrorDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Permission denied");
+        builder.setMessage("Without these permissions, the app is unable to display the map relative to your location. Are you sure you want to deny these permissions?");
+
+        String positiveText = "I'M SURE";
+        builder.setPositiveButton(positiveText,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        current.setEnabled(false);
+                    }
+                });
+
+        String negativeText = "RE-TRY";
+        builder.setNegativeButton(negativeText,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                                PERMISSIONS_MAP);
+                    }
+                });
+
+        AlertDialog dialog = builder.create();
+        // display dialog
+        dialog.show();
     }
 
     private double getMapRadius(GoogleMap googleMap) {
